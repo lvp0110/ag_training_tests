@@ -302,7 +302,8 @@ export default function Tests() {
                 ← Вернуться к тексту
               </button>
 
-              {allCorrect && (
+              {/* Временно закомментировано для восстановления раскомментировать: */}
+              {/* {allCorrect && (
                 <button
                   onClick={() => navigate("/card")}
                   style={{
@@ -322,7 +323,7 @@ export default function Tests() {
                 >
                   перейти к карточкам
                 </button>
-              )}
+              )} */}
             </>
           )}
         </div>

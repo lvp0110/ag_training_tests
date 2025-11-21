@@ -3,8 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import App from './App.jsx'
 import Tests from './pages/Tests.jsx'
-import Card from './pages/Card.jsx'
-import Solution from './pages/Solution.jsx'
+// Временно закомментировано для восстановления раскомментировать:
+// import Card from './pages/Card.jsx'
+// import Solution from './pages/Solution.jsx'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
@@ -12,10 +13,11 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<App />}>
-          <Route index element={<Navigate to="/card" replace />} />
+          <Route index element={<Navigate to="/tests" replace />} />
           <Route path='tests' element={<Tests />} />
-          <Route path='card' element={<Card />} />
-          <Route path='solution' element={<Solution />} />
+          {/* Временно закомментировано для восстановления раскомментировать: */}
+          {/* <Route path='card' element={<Card />} /> */}
+          {/* <Route path='solution' element={<Solution />} /> */}
         </Route>
       </Routes>
     </BrowserRouter>

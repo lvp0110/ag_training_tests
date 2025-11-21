@@ -30,12 +30,13 @@ export default function App() {
         <NavLink to="/tests" style={active}>
           Тест
         </NavLink>
-        <NavLink to="/card" style={active}>
+        {/* Временно закомментировано для восстановления раскомментировать: */}
+        {/* <NavLink to="/card" style={active}>
           Карточки
         </NavLink>
         <NavLink to="/solution" style={active}>
           Решение
-        </NavLink>
+        </NavLink> */}
       </header>
 
       <main
