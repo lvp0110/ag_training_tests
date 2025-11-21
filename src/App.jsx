@@ -1,10 +1,11 @@
 import { Outlet, NavLink } from "react-router-dom";
 
+
 export default function App() {
   const active = ({ isActive }) =>
     isActive ? { fontWeight: "700" } : undefined;
 
-  return (
+  return (     
     <div
       style={{
         margin: "0px auto",
@@ -26,22 +27,15 @@ export default function App() {
           borderBottom: "1px solid #eee",
         }}
       >
-        <NavLink to="/" style={active}>
-          Home
-        </NavLink>
         <NavLink to="/tests" style={active}>
-          Tests
+          Тест
         </NavLink>
         <NavLink to="/card" style={active}>
-          Card
+          Карточки
         </NavLink>
         <NavLink to="/solution" style={active}>
-          Solution
+          Решение
         </NavLink>
-        <NavLink to="/vibro" style={active}>
-        Vibro
-        </NavLink>
-        {/* <a href="https://db.acoustic.ru" target="_blank" rel="noreferrer">Docs</a> */}
       </header>
 
       <main
@@ -77,5 +71,6 @@ export default function App() {
         </small>
       </footer>
     </div>
+    
   );
 }

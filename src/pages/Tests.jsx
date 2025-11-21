@@ -1,6 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Tests() {
+  const navigate = useNavigate();
+
   const questions = [
     {
       id: 1,
@@ -20,14 +23,25 @@ export default function Tests() {
       options: ["Rockwool", "URSA", "ISOVER"],
       correctIndex: 0,
     },
+    {
+      id: 4,
+      text: "Толщина пергородки на сдвоенном каркасе 100 мм?",
+      options: ["268 мм", "158 мм", "168 мм"],
+      correctIndex: 1,
+    },
+    {
+      id: 5,
+      text: "Максимальная высота облицовки с применением креплений Виброфлекс-КС?",
+      options: ["6 м", "5,5 м", "10 м"],
+      correctIndex: 2,
+    },
   ];
 
-  // Выборы пользователя по индексам вопросов
+  const [showTests, setShowTests] = useState(false);
+  const [current, setCurrent] = useState(0);
   const [selectedByQuestion, setSelectedByQuestion] = useState({});
-  // Флаг: нажата ли кнопка проверки
   const [checked, setChecked] = useState(false);
 
-  // БАЗОВЫЙ СТИЛЬ: только развёрнутые свойства границы
   const baseOptionStyle = {
     padding: "12px 14px",
     borderWidth: 2,
@@ -37,7 +51,7 @@ export default function Tests() {
     cursor: "pointer",
     background: "none",
     transition:
-      "background-color .15s ease, border-color .15s ease, box-shadow .15s ease",
+      "background-color .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .12s ease",
     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
     userSelect: "none",
   };
@@ -45,133 +59,193 @@ export default function Tests() {
   const getOptionStyle = (qIndex, oIndex, correctIndex) => {
     const isSelected = selectedByQuestion[qIndex] === oIndex;
 
-    // Для невыбранных элементов после проверки запрещаем клик, но не меняем границы
-    if (!isSelected) {
-      return { ...baseOptionStyle, cursor: checked ? "default" : "pointer" };
+    if (!checked) {
+      return isSelected
+        ? {
+            ...baseOptionStyle,
+            background: "#f3f4f624",
+            borderColor: "#d1d5db",
+            cursor: "pointer",
+          }
+        : { ...baseOptionStyle, cursor: "pointer" };
     }
 
-    // До нажатия кнопки — светло-серый фон для выбранного
-    if (!checked) {
+    const isCorrect = oIndex === correctIndex;
+    if (isCorrect) {
       return {
         ...baseOptionStyle,
-        background: "#f3f4f624",
-        borderColor: "#d1d5db",
-        cursor: "pointer",
+        borderColor: "#10b981",
+        boxShadow: "0 0 0 3px rgba(16,185,129,0.12)",
+        cursor: "default",
       };
     }
 
-    // После нажатия — зелёный/красный для выбранного
-    const isCorrect = oIndex === correctIndex;
-    return {
-      ...baseOptionStyle,
-      borderColor: isCorrect ? "#10b981" : "#ef4444",
-      boxShadow: isCorrect
-        ? "0 0 0 3px rgba(16,185,129,0.25)"
-        : "0 0 0 3px rgba(239,68,68,0.25)",
-      cursor: "default",
-    };
+    if (isSelected && !isCorrect) {
+      return {
+        ...baseOptionStyle,
+        borderColor: "#ef4444",
+        boxShadow: "0 0 0 3px rgba(239,68,68,0.12)",
+        cursor: "default",
+      };
+    }
+
+    return { ...baseOptionStyle, opacity: 0.75, cursor: "default" };
   };
 
-  const onSelect = (qIndex, oIndex) => {
-    if (checked) return; // после проверки менять нельзя
-    setSelectedByQuestion((prev) => ({ ...prev, [qIndex]: oIndex }));
+  const onSelect = (oIndex) => {
+    if (checked) return;
+    setSelectedByQuestion((prev) => ({ ...prev, [current]: oIndex }));
+    const delay = 300;
+    const next = current + 1;
+
+    setTimeout(() => {
+      if (next < questions.length) {
+        setCurrent(next);
+      } else {
+        setChecked(true);
+      }
+    }, delay);
   };
 
-  const answeredCount = Object.keys(selectedByQuestion).length;
-  const allAnswered = answeredCount === questions.length;
-
-  // Подсчёт результата
   const correctCount = questions.reduce((acc, q, qIndex) => {
     const selected = selectedByQuestion[qIndex];
     return acc + (selected === q.correctIndex ? 1 : 0);
   }, 0);
 
+  const allCorrect = checked && correctCount === questions.length;
+
   const reset = () => {
     setSelectedByQuestion({});
     setChecked(false);
+    setCurrent(0);
   };
 
   return (
-    <main
-      style={{ position: "relative", minHeight: "100vh", paddingTop: "4rem" }}
-    >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: "7.5rem",
-          margin: "0px 30px",
-        }}
-      >
-        <h2
+    <main style={{ position: "relative", minHeight: "100vh", paddingTop: "4rem" }}>
+      {showTests && (
+        <div
           style={{
-            zIndex: 3,
-            margin: 0,
-            color: "#fff",
-            fontWeight: 300,
-            fontSize: 30,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: "7.5rem",
+            margin: "0px 30px",
           }}
         >
-          Тесты
-        </h2>
+          <h2
+            style={{
+              zIndex: 3,
+              margin: 0,
+              color: "#fff",
+              fontWeight: 300,
+              fontSize: 30,
+            }}
+          >
+            Тесты
+          </h2>
 
-        {checked && (
-          <>
+          {checked ? (
             <div style={{ fontWeight: 600, color: "#f3f4f6" }}>
               Результат: {correctCount} из {questions.length}
             </div>
-          </>
-        )}
-      </div>
+          ) : (
+            <div style={{ fontWeight: 600, color: "#f3f4f6" }}>
+              Вопрос {Math.min(current + 1, questions.length)} из {questions.length}
+            </div>
+          )}
+        </div>
+      )}
 
       <div style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
-        {questions.map((q, qIndex) => (
-          <section
-            key={q.id}
+        {/* Текстовый блок отдельно от тестов */}
+        {!showTests && (
+          <div
             style={{
               background: "none",
               borderRadius: "16px",
-              padding: "1rem 1.25rem",
-              marginBottom: "1rem",
+              padding: "1.5rem",
+              marginBottom: "2rem",
               borderWidth: 1,
               borderStyle: "solid",
               borderColor: "#e5e7eb",
+              lineHeight: 1.6,
             }}
           >
-            <h2
+            <p style={{ margin: 0, fontSize: "1rem", marginBottom: "1.5rem" }}>
+              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ipsum expedita non eaque voluptatum laudantium perferendis nihil, quod ratione dolore in. Error quia nobis sint! Quis nobis quibusdam blanditiis ab corrupti!
+            </p>
+            <button
+              onClick={() => setShowTests(true)}
               style={{
-                margin: "0 0 0.75rem 0",
-                fontSize: "1.125rem",
+                padding: "12px 24px",
+                borderRadius: "10px",
+                borderWidth: 2,
+                borderStyle: "solid",
+                borderColor: "#10b981",
+                background: "#10b981",
+                color: "#fff",
+                cursor: "pointer",
+                transition: "all .15s ease",
                 fontWeight: 600,
+                fontFamily: "sans-serif",
+                fontSize: 18,
               }}
             >
-              {q.text}
-            </h2>
+              Начать тест
+            </button>
+          </div>
+        )}
 
-            <ul
+        {showTests && questions.map((q, qIndex) => {
+          if (!checked && qIndex !== current) return null;
+
+          return (
+            <section
+              key={q.id}
               style={{
-                listStyle: "none",
-                padding: 0,
-                margin: 0,
-                display: "grid",
-                gap: "0.5rem",
+                background: "none",
+                borderRadius: "16px",
+                padding: "1rem 1.25rem",
+                marginBottom: "1rem",
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderColor: "#e5e7eb",
               }}
             >
-              {q.options.map((opt, oIndex) => (
-                <li
-                  key={oIndex}
-                  onClick={() => onSelect(qIndex, oIndex)}
-                  style={getOptionStyle(qIndex, oIndex, q.correctIndex)}
-                >
-                  {opt}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+              <h2
+                style={{
+                  margin: "0 0 0.75rem 0",
+                  fontSize: "1.125rem",
+                  fontWeight: 600,
+                }}
+              >
+                {q.text}
+              </h2>
 
-        {/* Кнопки и результат */}
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "grid",
+                  gap: "0.5rem",
+                }}
+              >
+                {q.options.map((opt, oIndex) => (
+                  <li
+                    key={oIndex}
+                    onClick={() => onSelect(oIndex)}
+                    style={getOptionStyle(qIndex, oIndex, q.correctIndex)}
+                  >
+                    {opt}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+
+        {showTests && (
         <div
           style={{
             marginTop: "1.25rem",
@@ -181,33 +255,12 @@ export default function Tests() {
             gap: "0.75rem",
           }}
         >
-          <button
-            disabled={!allAnswered || checked}
-            onClick={() => setChecked(true)}
-            style={{
-              padding: "14px 14px",
-              borderRadius: "10px",
-              borderWidth: 2,
-              borderStyle: "solid",
-              borderColor: !allAnswered || checked ? "#e5e7eb" : "#111827",
-              background: !allAnswered || checked ? "#e5e7eb" : "#f3f4f624",
-              color: !allAnswered || checked ? "#9ca3af" : "#fff",
-              cursor: !allAnswered || checked ? "not-allowed" : "pointer",
-              transition: "all .15s ease",
-              fontWeight: 600,
-              fontFamily: "sans-serif",
-              fontSize: 18,
-            }}
-          >
-            проверить
-          </button>
-
           {checked && (
             <>
               <button
                 onClick={reset}
                 style={{
-                  padding: "14px 10px",
+                  padding: "10px 10px",
                   borderRadius: "10px",
                   borderWidth: 2,
                   borderStyle: "solid",
@@ -223,9 +276,57 @@ export default function Tests() {
               >
                 пройти снова
               </button>
+
+              <button
+                onClick={() => {
+                  setShowTests(false);
+                  setSelectedByQuestion({});
+                  setChecked(false);
+                  setCurrent(0);
+                }}
+                style={{
+                  padding: "10px 10px",
+                  borderRadius: "10px",
+                  borderWidth: 2,
+                  borderStyle: "solid",
+                  borderColor: "#e5e7eb",
+                  background: "#fff",
+                  color: "#111827",
+                  cursor: "pointer",
+                  transition: "all .15s ease",
+                  fontWeight: 600,
+                  fontFamily: "sans-serif",
+                  fontSize: 18,
+                }}
+              >
+                ← Вернуться к тексту
+              </button>
+
+              {allCorrect && (
+                <button
+                  onClick={() => navigate("/card")}
+                  style={{
+                    padding: "10px 10px",
+                    borderRadius: "10px",
+                    borderWidth: 2,
+                    borderStyle: "solid",
+                    borderColor: "#10b981",
+                    background: "#10b981",
+                    color: "#fff",
+                    cursor: "pointer",
+                    transition: "all .15s ease",
+                    fontWeight: 600,
+                    fontFamily: "sans-serif",
+                    fontSize: 18,
+                  }}
+                >
+                  перейти к карточкам
+                </button>
+              )}
             </>
           )}
         </div>
+        )}
       </div>
     </main>
   );
