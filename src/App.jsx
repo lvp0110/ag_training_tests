@@ -27,6 +27,13 @@ export default function App() {
           borderBottom: "1px solid #eee",
         }}
       >
+       
+        <NavLink to="/articles" style={active}>
+          Список статей
+        </NavLink>
+        <NavLink to="/article" style={active}>
+          Статья
+        </NavLink>
         <NavLink to="/tests" style={active}>
           Тест
         </NavLink>
@@ -42,9 +49,9 @@ export default function App() {
       <main
         style={{
           flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          // display: "flex",
+          alignItems: "start",
+          justifyContent: "start",
           padding: "24px 0",
         }}
       >
