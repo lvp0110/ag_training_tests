@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_ENDPOINTS } from "../config/api";
 
 export default function Tests() {
   const [questions, setQuestions] = useState([]);
@@ -45,7 +46,7 @@ export default function Tests() {
         
         // Пытаемся получить вопросы через GET /answers (основной эндпоинт для получения вопросов)
         // /check используется для POST запросов (проверка ответов)
-        let response = await fetch('/answers', {
+        let response = await fetch(API_ENDPOINTS.ANSWERS, {
           method: 'GET',
           headers: {
             'accept': 'application/json'
@@ -72,8 +73,15 @@ export default function Tests() {
         setQuestions(questionsData);
         setError(null);
       } catch (err) {
-        setError(err.message);
+        // Улучшенная обработка ошибок
+        const errorMessage = err.message || 'Не удалось загрузить вопросы';
+        setError(errorMessage);
         console.error('Ошибка при загрузке вопросов:', err);
+        
+        // Если API недоступен, показываем более понятное сообщение
+        if (err.message.includes('404') || err.message.includes('Failed to fetch')) {
+          setError('API сервер недоступен. Убедитесь, что сервер запущен и доступен.');
+        }
       } finally {
         setLoading(false);
       }
@@ -91,7 +99,7 @@ export default function Tests() {
     }));
 
     try {
-      const response = await fetch('/check', {
+      const response = await fetch(API_ENDPOINTS.CHECK, {
         method: 'POST',
         headers: {
           'accept': 'application/json',

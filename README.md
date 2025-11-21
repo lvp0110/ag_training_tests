@@ -167,6 +167,34 @@ src/
    - `base: '/ag_training_tests/'` в `vite.config.js` (уже настроено)
    - `basename="/ag_training_tests"` в `BrowserRouter` (уже настроено)
 
+## Настройка API
+
+Приложение использует API endpoints `/answers` и `/check` для работы с тестами.
+
+### Разработка
+
+В режиме разработки API работает через proxy, настроенный в `vite.config.js`:
+- `/answers` → `http://localhost:3000/answers`
+- `/check` → `http://localhost:3000/check`
+
+### Production
+
+Для production необходимо настроить базовый URL API сервера. Подробные инструкции см. в файле [API_CONFIG.md](./API_CONFIG.md).
+
+**Быстрая настройка:**
+
+1. Создайте файл `.env.production` в корне проекта:
+   ```
+   VITE_API_BASE_URL=http://your-api-server.com
+   ```
+
+2. Пересоберите проект:
+   ```bash
+   npm run build
+   ```
+
+3. Опубликуйте обновленную версию
+
 ## Лицензия
 
 © AN Game Card
