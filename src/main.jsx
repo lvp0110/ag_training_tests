@@ -12,7 +12,7 @@ import './index.css'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/ag_training_tests">
       <Routes>
         <Route path='/' element={<App />}>
           <Route index element={<Navigate to="/tests" replace />} />

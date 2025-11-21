@@ -18,7 +18,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  base: '/',
+  base: '/ag_training_tests/',
   plugins: [react()],
   server: {
     proxy: {
