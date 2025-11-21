@@ -27,23 +27,31 @@ export default function App() {
           borderBottom: "1px solid #eee",
         }}
       >
+       
+        <NavLink to="/articles" style={active}>
+          Список статей
+        </NavLink>
+        <NavLink to="/article" style={active}>
+          Статья
+        </NavLink>
         <NavLink to="/tests" style={active}>
           Тест
         </NavLink>
-        <NavLink to="/card" style={active}>
+        {/* Временно закомментировано для восстановления раскомментировать: */}
+        {/* <NavLink to="/card" style={active}>
           Карточки
         </NavLink>
         <NavLink to="/solution" style={active}>
           Решение
-        </NavLink>
+        </NavLink> */}
       </header>
 
       <main
         style={{
           flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          // display: "flex",
+          alignItems: "start",
+          justifyContent: "start",
           padding: "24px 0",
         }}
       >

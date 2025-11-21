@@ -1,14 +1,82 @@
-# React + Vite
+# AG Training Tests
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Приложение для обучения и тестирования на основе React и Vite.
 
-Currently, two official plugins are available:
+## Описание
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Проект представляет собой веб-приложение для прохождения тестов, просмотра статей и работы с обучающими материалами.
 
-## Expanding the ESLint configuration
+## Технологии
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# new_game_cards
-# new_game_cards
+- **React** ^19.1.1
+- **React Router DOM** ^7.8.0
+- **Vite** ^7.1.2
+- **Recharts** ^3.2.1 (для графиков и визуализации данных)
+- **ESLint** (для проверки качества кода)
+
+## Установка и запуск
+
+### Требования
+
+- Node.js (рекомендуется версия 18 или выше)
+- npm или yarn
+
+### Установка зависимостей
+
+```bash
+npm install
+```
+
+### Запуск в режиме разработки
+
+```bash
+npm run dev
+```
+
+Приложение будет доступно по адресу `http://localhost:5173`
+
+### Сборка для production
+
+```bash
+npm run build
+```
+
+Собранные файлы будут находиться в папке `dist`
+
+### Предпросмотр production сборки
+
+```bash
+npm run preview
+```
+
+### Проверка кода линтером
+
+```bash
+npm run lint
+```
+
+## Структура проекта
+
+```
+src/
+├── pages/          # Страницы приложения
+│   ├── Article.jsx      # Страница статьи
+│   ├── ArticlesList.jsx # Список статей
+│   ├── Card.jsx         # Карточки
+│   ├── Solution.jsx     # Решение
+│   └── Tests.jsx        # Тесты
+├── assets/         # Изображения и другие ресурсы
+├── App.jsx         # Главный компонент приложения
+└── main.jsx        # Точка входа
+```
+
+## Скрипты
+
+- `npm run dev` - запуск dev-сервера
+- `npm run build` - сборка проекта
+- `npm run preview` - предпросмотр production сборки
+- `npm run lint` - проверка кода линтером
+
+## Лицензия
+
+© AN Game Card

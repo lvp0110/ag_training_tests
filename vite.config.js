@@ -32,6 +32,16 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/answers': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/check': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 })

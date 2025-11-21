@@ -1,332 +1,562 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
 
 export default function Tests() {
-  const navigate = useNavigate();
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // Храним выбранные ответы: ключ - question_code, значение - code выбранного ответа
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  // Храним результаты проверки: ключ - question_code, значение - { isCorrect: boolean, checking: boolean, error: string, correctAnswerCode: string }
+  const [checkResults, setCheckResults] = useState({});
 
-  const questions = [
-    {
-      id: 1,
-      text: "В каком году началось производсво Шуманет БМ?",
-      options: ["1999 год", "2000 год", "2005 год"],
-      correctIndex: 1,
-    },
-    {
-      id: 2,
-      text: "Какие противопожарные свойства у Шуманет БМ?",
-      options: ["КМ1", "НГ", "Н1"],
-      correctIndex: 1,
-    },
-    {
-      id: 3,
-      text: "Чье сырье используется для производства Шуманет БМ?",
-      options: ["Rockwool", "URSA", "ISOVER"],
-      correctIndex: 0,
-    },
-    {
-      id: 4,
-      text: "Толщина пергородки на сдвоенном каркасе 100 мм?",
-      options: ["268 мм", "158 мм", "168 мм"],
-      correctIndex: 1,
-    },
-    {
-      id: 5,
-      text: "Максимальная высота облицовки с применением креплений Виброфлекс-КС?",
-      options: ["6 м", "5,5 м", "10 м"],
-      correctIndex: 2,
-    },
-  ];
-
-  const [showTests, setShowTests] = useState(false);
-  const [current, setCurrent] = useState(0);
-  const [selectedByQuestion, setSelectedByQuestion] = useState({});
-  const [checked, setChecked] = useState(false);
-
-  const baseOptionStyle = {
-    padding: "12px 14px",
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: "#e5e7eb",
-    borderRadius: "12px",
-    cursor: "pointer",
-    background: "none",
-    transition:
-      "background-color .15s ease, border-color .15s ease, box-shadow .15s ease, opacity .12s ease",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-    userSelect: "none",
+  // Общие стили для переиспользования
+  const mainContainerStyle = {
+    position: "relative",
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center"
   };
 
-  const getOptionStyle = (qIndex, oIndex, correctIndex) => {
-    const isSelected = selectedByQuestion[qIndex] === oIndex;
+  const contentContainerStyle = {
+    maxWidth: 600,
+    boxSizing: "border-box"
+  };
 
-    if (!checked) {
-      return isSelected
-        ? {
-            ...baseOptionStyle,
-            background: "#f3f4f624",
-            borderColor: "#d1d5db",
-            cursor: "pointer",
+  const centerContainerStyle = {
+    ...contentContainerStyle,
+    textAlign: "center"
+  };
+
+  // Базовые стили для вариантов ответов
+  const baseAnswerStyle = {
+    padding: "0.75rem 1rem",
+    borderRadius: "8px",
+    fontSize: "0.9375rem",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    cursor: "default"
+  };
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        
+        // Пытаемся получить вопросы через GET /answers (основной эндпоинт для получения вопросов)
+        // /check используется для POST запросов (проверка ответов)
+        let response = await fetch('/answers', {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json'
           }
-        : { ...baseOptionStyle, cursor: "pointer" };
-    }
+        });
 
-    const isCorrect = oIndex === correctIndex;
-    if (isCorrect) {
-      return {
-        ...baseOptionStyle,
-        borderColor: "#10b981",
-        boxShadow: "0 0 0 3px rgba(16,185,129,0.12)",
-        cursor: "default",
-      };
-    }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-    if (isSelected && !isCorrect) {
-      return {
-        ...baseOptionStyle,
-        borderColor: "#ef4444",
-        boxShadow: "0 0 0 3px rgba(239,68,68,0.12)",
-        cursor: "default",
-      };
-    }
+        const data = await response.json();
+        console.log('Получены данные с сервера:', data);
+        
+        // Проверяем структуру данных
+        let questionsData = [];
+        if (Array.isArray(data)) {
+          questionsData = data;
+        } else if (data && typeof data === 'object') {
+          // Пытаемся найти массив вопросов в объекте
+          questionsData = data.questions || data.data || data.items || [];
+        }
 
-    return { ...baseOptionStyle, opacity: 0.75, cursor: "default" };
-  };
-
-  const onSelect = (oIndex) => {
-    if (checked) return;
-    setSelectedByQuestion((prev) => ({ ...prev, [current]: oIndex }));
-    const delay = 300;
-    const next = current + 1;
-
-    setTimeout(() => {
-      if (next < questions.length) {
-        setCurrent(next);
-      } else {
-        setChecked(true);
+        console.log('Список вопросов:', questionsData);
+        setQuestions(questionsData);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        console.error('Ошибка при загрузке вопросов:', err);
+      } finally {
+        setLoading(false);
       }
-    }, delay);
+    };
+
+    fetchQuestions();
+  }, []);
+
+  // Функция для проверки ответа через /check
+  const checkAnswer = async (questionCode, answerCode) => {
+    // Устанавливаем состояние проверки
+    setCheckResults(prev => ({
+      ...prev,
+        [questionCode]: { checking: true, isCorrect: null, error: null, correctAnswerCode: null }
+    }));
+
+    try {
+      const response = await fetch('/check', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([
+          {
+            question_code: questionCode,
+            answerCodes: [String(answerCode)]
+          }
+        ])
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('=== Результат проверки ===');
+      console.log('Вопрос:', questionCode);
+      console.log('Выбранный ответ:', answerCode);
+      console.log('Полный ответ сервера:', JSON.stringify(result, null, 2));
+      console.log('Тип результата:', typeof result, Array.isArray(result) ? '(массив)' : '(объект)');
+
+      // Определяем, правильный ли ответ
+      // Структура ответа: { result: [{ questionCode, userAnswerCode, rightAnswerCode, isCorrect }] }
+      let isCorrect = false;
+      let correctAnswerCode = null;
+
+      // Если результат - объект с полем result (массив)
+      if (result && typeof result === 'object' && Array.isArray(result.result)) {
+        console.log('Обработка объекта с массивом result');
+        const resultsArray = result.result;
+        const item = resultsArray.find(r => 
+          r.questionCode === questionCode || 
+          r.questionCode === String(questionCode) ||
+          r.question_code === questionCode ||
+          r.question_code === String(questionCode)
+        ) || resultsArray[0];
+        console.log('Найденный элемент в result:', item);
+        
+        if (item) {
+          isCorrect = item.isCorrect === true;
+          // rightAnswerCode - это массив, берем первый элемент
+          correctAnswerCode = Array.isArray(item.rightAnswerCode) && item.rightAnswerCode.length > 0
+            ? String(item.rightAnswerCode[0])
+            : (item.rightAnswerCode || item.correctAnswerCode || item.correct_answer_code || null);
+        }
+      }
+      // Если результат - массив напрямую
+      else if (Array.isArray(result) && result.length > 0) {
+        const item = result.find(r => 
+          r.questionCode === questionCode || 
+          r.questionCode === String(questionCode) ||
+          r.question_code === questionCode || 
+          r.question_code === String(questionCode)
+        ) || result[0];
+        console.log('Найденный элемент в массиве:', item);
+        
+        if (item) {
+          isCorrect = item.isCorrect === true || item.correct === true || item.result === true || item.is_correct === true;
+          // Проверяем различные варианты названий поля
+          correctAnswerCode = Array.isArray(item.rightAnswerCode) && item.rightAnswerCode.length > 0
+            ? String(item.rightAnswerCode[0])
+            : (item.rightAnswerCode || item.correctAnswerCode || item.correct_answer_code || item.correctAnswer || item.correct_answer || null);
+        }
+      } 
+      // Если результат - объект с другими полями
+      else if (result && typeof result === 'object') {
+        console.log('Обработка объекта результата');
+        isCorrect = result.isCorrect === true || result.correct === true || result.result === true || result.is_correct === true;
+        correctAnswerCode = Array.isArray(result.rightAnswerCode) && result.rightAnswerCode.length > 0
+          ? String(result.rightAnswerCode[0])
+          : (result.rightAnswerCode || result.correctAnswerCode || result.correct_answer_code || result.correctAnswer || result.correct_answer || null);
+        
+        // Если есть массив результатов внутри
+        if (Array.isArray(result.results) || Array.isArray(result.data)) {
+          const resultsArray = result.results || result.data;
+          const item = resultsArray.find(r => 
+            r.questionCode === questionCode ||
+            r.questionCode === String(questionCode) ||
+            r.question_code === questionCode || 
+            r.question_code === String(questionCode)
+          ) || resultsArray[0];
+          console.log('Найденный элемент во вложенном массиве:', item);
+          
+          if (item) {
+            isCorrect = item?.isCorrect === true || item?.correct === true || item?.result === true || item?.is_correct === true;
+            correctAnswerCode = Array.isArray(item?.rightAnswerCode) && item.rightAnswerCode.length > 0
+              ? String(item.rightAnswerCode[0])
+              : (item?.rightAnswerCode || item?.correctAnswerCode || item?.correct_answer_code || item?.correctAnswer || item?.correct_answer || null);
+          }
+        }
+      }
+
+      // Если правильный ответ не указан явно, но ответ правильный - используем выбранный код
+      if (!correctAnswerCode && isCorrect) {
+        correctAnswerCode = String(answerCode);
+      }
+
+      console.log('=== Результат обработки ===');
+      console.log('isCorrect =', isCorrect);
+      console.log('correctAnswerCode =', correctAnswerCode);
+      console.log('selectedAnswerCode =', answerCode);
+
+      const resultData = { 
+        checking: false, 
+        isCorrect, 
+        error: null,
+        correctAnswerCode: correctAnswerCode || null
+      };
+
+      setCheckResults(prev => {
+        const updated = { ...prev, [questionCode]: resultData };
+        console.log('Обновленные результаты проверки:', updated);
+        console.log('Результат для вопроса', questionCode, ':', resultData);
+        return updated;
+      });
+    } catch (err) {
+      console.error('Ошибка при проверке ответа:', err);
+      setCheckResults(prev => ({
+        ...prev,
+        [questionCode]: { checking: false, isCorrect: null, error: err.message, correctAnswerCode: null }
+      }));
+    }
   };
 
-  const correctCount = questions.reduce((acc, q, qIndex) => {
-    const selected = selectedByQuestion[qIndex];
-    return acc + (selected === q.correctIndex ? 1 : 0);
-  }, 0);
+  // Обработчик выбора ответа
+  const handleAnswerSelect = (questionCode, answerCode) => {
+    console.log('=== Выбор ответа ===');
+    console.log('Вопрос (question_code):', questionCode);
+    console.log('Выбранный ответ (code):', answerCode);
+    
+    // Сохраняем выбранный ответ
+    setSelectedAnswers(prev => {
+      const updated = { ...prev, [questionCode]: answerCode };
+      console.log('Обновленные выбранные ответы:', updated);
+      return updated;
+    });
 
-  const allCorrect = checked && correctCount === questions.length;
-
-  const reset = () => {
-    setSelectedByQuestion({});
-    setChecked(false);
-    setCurrent(0);
+    // Проверяем ответ
+    checkAnswer(questionCode, answerCode);
   };
+
+  // Получить стиль для варианта ответа
+  const getAnswerStyle = (questionCode, answerCode) => {
+    const selected = selectedAnswers[questionCode] === answerCode;
+    const result = checkResults[questionCode];
+    const isAnswered = selectedAnswers[questionCode] !== undefined;
+
+    // Если вопрос проверен
+    if (result && !result.checking && isAnswered) {
+      // Определяем, является ли этот вариант правильным ответом
+      const isCorrectAnswer = 
+        (result.correctAnswerCode && result.correctAnswerCode === String(answerCode)) ||
+        (result.isCorrect === true && selected) ||
+        (!result.correctAnswerCode && result.isCorrect === true && selected);
+      
+      // Если это правильный ответ - всегда показываем зеленым
+      if (isCorrectAnswer) {
+        return {
+          ...baseAnswerStyle,
+          background: "#f0fdf4",
+          borderWidth: 2,
+          borderStyle: "solid",
+          borderColor: "#10b981",
+          color: "#065f46",
+          boxShadow: "0 0 0 3px rgba(16,185,129,0.1)",
+        };
+      }
+      
+      // Если это неправильно выбранный ответ - показываем красным
+      if (selected && result.isCorrect === false) {
+        return {
+          ...baseAnswerStyle,
+          background: "#fef2f2",
+          borderWidth: 2,
+          borderStyle: "solid",
+          borderColor: "#ef4444",
+          color: "#991b1b",
+          boxShadow: "0 0 0 3px rgba(239,68,68,0.1)",
+        };
+      }
+    }
+
+    // Если проверяется
+    if (selected && result && result.checking) {
+      return {
+        ...baseAnswerStyle,
+        background: "#fffbeb",
+        borderWidth: 2,
+        borderStyle: "solid",
+        borderColor: "#f59e0b",
+        color: "#92400e",
+      };
+    }
+
+    // Если выбран, но еще не проверен
+    if (selected && (!result || result.checking)) {
+      return {
+        ...baseAnswerStyle,
+        background: "#f3f4f6",
+        borderWidth: 2,
+        borderStyle: "solid",
+        borderColor: "#6366f1",
+        color: "#374151",
+      };
+    }
+
+    // Если вопрос проверен и это не выбранный и не правильный ответ - приглушаем
+    if (result && !result.checking && isAnswered && !selected && 
+        result.correctAnswerCode !== String(answerCode)) {
+      return {
+        ...baseAnswerStyle,
+        background: "#f9fafb",
+        borderWidth: 1,
+        borderStyle: "solid",
+        borderColor: "#e5e7eb",
+        color: "#9ca3af",
+        opacity: 0.6,
+      };
+    }
+
+    // Обычное состояние (не выбран)
+    return {
+      ...baseAnswerStyle,
+      background: "#f9fafb",
+      borderWidth: 1,
+      borderStyle: "solid",
+      borderColor: "#e5e7eb",
+      color: "#374151",
+      cursor: isAnswered ? "default" : "pointer",
+      transition: "all 0.2s ease",
+    };
+  };
+
+  if (loading) {
+    return (
+      <main style={mainContainerStyle}>
+        <div style={centerContainerStyle}>
+          <p style={{ fontSize: "1rem", color: "#6b7280" }}>Загрузка вопросов...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main style={mainContainerStyle}>
+        <div style={centerContainerStyle}>
+          <p style={{ fontSize: "1rem", color: "#ef4444" }}>Ошибка загрузки: {error}</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main style={{ position: "relative", minHeight: "100vh", paddingTop: "4rem" }}>
-      {showTests && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: "7.5rem",
-            margin: "0px 30px",
-          }}
-        >
-          <h2
-            style={{
-              zIndex: 3,
-              margin: 0,
-              color: "#fff",
-              fontWeight: 300,
-              fontSize: 30,
-            }}
-          >
-            Тесты
-          </h2>
+    <main style={mainContainerStyle}>
+      <div style={contentContainerStyle}>
+        <h1 style={{ fontSize: "2rem", fontWeight: 600, marginBottom: "2rem", color: "white" }}>
+          Список вопросов
+        </h1>
 
-          {checked ? (
-            <div style={{ fontWeight: 600, color: "#f3f4f6" }}>
-              Результат: {correctCount} из {questions.length}
-            </div>
-          ) : (
-            <div style={{ fontWeight: 600, color: "#f3f4f6" }}>
-              Вопрос {Math.min(current + 1, questions.length)} из {questions.length}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={{ padding: "2rem", maxWidth: 800, margin: "0 auto" }}>
-        {/* Текстовый блок отдельно от тестов */}
-        {!showTests && (
+        {questions.length === 0 ? (
           <div
             style={{
-              background: "none",
-              borderRadius: "16px",
-              padding: "1.5rem",
-              marginBottom: "2rem",
-              borderWidth: 1,
-              borderStyle: "solid",
-              borderColor: "#e5e7eb",
-              lineHeight: 1.6,
+              background: "#f3f4f6",
+              borderRadius: "12px",
+              padding: "2rem",
+              textAlign: "center",
             }}
           >
-            <p style={{ margin: 0, fontSize: "1rem", marginBottom: "1.5rem" }}>
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ipsum expedita non eaque voluptatum laudantium perferendis nihil, quod ratione dolore in. Error quia nobis sint! Quis nobis quibusdam blanditiis ab corrupti!
+            <p style={{ margin: 0, fontSize: "1rem", color: "#6b7280" }}>
+              Нет доступных вопросов
             </p>
-            <button
-              onClick={() => setShowTests(true)}
-              style={{
-                padding: "12px 24px",
-                borderRadius: "10px",
-                borderWidth: 2,
-                borderStyle: "solid",
-                borderColor: "#10b981",
-                background: "#10b981",
-                color: "#fff",
-                cursor: "pointer",
-                transition: "all .15s ease",
-                fontWeight: 600,
-                fontFamily: "sans-serif",
-                fontSize: 18,
-              }}
-            >
-              Начать тест
-            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {questions.map((question, index) => {
+              // Извлекаем код вопроса (структура: Code - это question_code для /check POST)
+              const questionCode = question.Code || question.code || question.question_code || question.id || String(index + 1);
+              
+              // Извлекаем текст вопроса (структура: Name)
+              const questionText = 
+                question.Name || 
+                question.name ||
+                question.text || 
+                question.question || 
+                question.title ||
+                question.question_text ||
+                question.label ||
+                `Вопрос ${index + 1}`;
+
+              // Извлекаем варианты ответов (структура: Answers - массив с Name и Code)
+              let options = [];
+              
+              if (question.Answers && Array.isArray(question.Answers)) {
+                // Структура: Answers - массив объектов с Name и Code
+                options = question.Answers.map(answer => ({
+                  code: answer.Code || answer.code || String(answer),
+                  text: answer.Name || answer.name || answer.text || answer.label || String(answer)
+                }));
+              } else if (question.answers && Array.isArray(question.answers)) {
+                options = question.answers.map(answer => {
+                  if (typeof answer === 'object' && answer !== null) {
+                    return {
+                      code: answer.Code || answer.code || String(answer),
+                      text: answer.Name || answer.name || answer.text || answer.label || String(answer)
+                    };
+                  }
+                  return {
+                    code: String(answer),
+                    text: String(answer)
+                  };
+                });
+              } else if (question.options && Array.isArray(question.options)) {
+                options = question.options.map(opt => {
+                  if (typeof opt === 'object' && opt !== null) {
+                    return {
+                      code: opt.Code || opt.code || String(opt),
+                      text: opt.Name || opt.name || opt.text || opt.label || String(opt)
+                    };
+                  }
+                  return {
+                    code: String(opt),
+                    text: String(opt)
+                  };
+                });
+              }
+
+              return (
+                  <section
+                  key={questionCode || question.id || question._id || index}
+                  style={{
+                    background: "#ffffff",
+                    borderRadius: "16px",
+                    padding: "1.5rem",
+                    borderWidth: 1,
+                    borderStyle: "solid",
+                    borderColor: "#e5e7eb",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    width: "100%",
+                  }}
+                >
+                  <div style={{ marginBottom: "1rem" }}>
+                    <h2
+                      style={{
+                        margin: 0,
+                        fontSize: "1.25rem",
+                        fontWeight: 600,
+                        color: "#111827",
+                      }}
+                    >
+                      {questionText}
+                    </h2>
+                  </div>
+
+                  {Array.isArray(options) && options.length > 0 ? (
+                    <ul
+                      style={{
+                        listStyle: "none",
+                        padding: 0,
+                        margin: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      {options.map((option, optIndex) => {
+                        // option уже имеет структуру { code, text }
+                        const optionCode = option.code || String(optIndex + 1);
+                        const optionText = option.text || `Вариант ${optIndex + 1}`;
+                        const selected = selectedAnswers[questionCode] === optionCode;
+                        const result = checkResults[questionCode];
+                        const isChecking = selected && result && result.checking;
+                        const isAnswered = selectedAnswers[questionCode] !== undefined;
+
+                        return (
+                          <li
+                            key={optIndex}
+                            onClick={() => {
+                              // Не позволяем выбирать другой ответ, если уже выбран
+                              if (!isAnswered) {
+                                handleAnswerSelect(questionCode, optionCode);
+                              }
+                            }}
+                            style={getAnswerStyle(questionCode, optionCode)}
+                            onMouseEnter={(e) => {
+                              if (!isAnswered && !selected) {
+                                e.currentTarget.style.background = "#f3f4f6";
+                                e.currentTarget.style.borderColor = "#d1d5db";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isAnswered && !selected) {
+                                e.currentTarget.style.background = "#f9fafb";
+                                e.currentTarget.style.borderColor = "#e5e7eb";
+                              }
+                            }}
+                          >
+                            <span style={{ fontWeight: selected ? 600 : 400 }}>
+                              {optionText}
+                              {isChecking && (
+                                <span style={{ 
+                                  marginLeft: "0.5rem", 
+                                  fontSize: "0.875rem",
+                                  fontStyle: "italic"
+                                }}>
+                                  (проверка...)
+                                </span>
+                              )}
+                            </span>
+                            <span style={{ 
+                              fontSize: "0.75rem", 
+                              color: "#9ca3af",
+                              marginLeft: "0.5rem"
+                            }}>
+                              Code: {optionCode}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#9ca3af", fontStyle: "italic" }}>
+                      Нет вариантов ответа
+                    </p>
+                  )}
+
+                  {/* Отображение ошибки проверки, если она есть */}
+                  {checkResults[questionCode]?.error && (
+                    <div
+                      style={{
+                        marginTop: "1rem",
+                        padding: "0.75rem 1rem",
+                        background: "#fef2f2",
+                        borderRadius: "8px",
+                        borderWidth: 1,
+                        borderStyle: "solid",
+                        borderColor: "#ef4444",
+                      }}
+                    >
+                      <p style={{ margin: 0, fontSize: "0.875rem", color: "#dc2626" }}>
+                        Ошибка при проверке ответа: {checkResults[questionCode].error}
+                      </p>
+                    </div>
+                  )}
+                </section>
+              );
+            })}
           </div>
         )}
 
-        {showTests && questions.map((q, qIndex) => {
-          if (!checked && qIndex !== current) return null;
-
-          return (
-            <section
-              key={q.id}
-              style={{
-                background: "none",
-                borderRadius: "16px",
-                padding: "1rem 1.25rem",
-                marginBottom: "1rem",
-                borderWidth: 1,
-                borderStyle: "solid",
-                borderColor: "#e5e7eb",
-              }}
-            >
-              <h2
-                style={{
-                  margin: "0 0 0.75rem 0",
-                  fontSize: "1.125rem",
-                  fontWeight: 600,
-                }}
-              >
-                {q.text}
-              </h2>
-
-              <ul
-                style={{
-                  listStyle: "none",
-                  padding: 0,
-                  margin: 0,
-                  display: "grid",
-                  gap: "0.5rem",
-                }}
-              >
-                {q.options.map((opt, oIndex) => (
-                  <li
-                    key={oIndex}
-                    onClick={() => onSelect(oIndex)}
-                    style={getOptionStyle(qIndex, oIndex, q.correctIndex)}
-                  >
-                    {opt}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          );
-        })}
-
-        {showTests && (
         <div
           style={{
-            marginTop: "1.25rem",
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: "0.75rem",
+            marginTop: "2rem",
+            padding: "1rem",
+            background: "#f3f4f6",
+            borderRadius: "8px",
+            fontSize: "0.875rem",
+            color: "#6b7280",
           }}
         >
-          {checked && (
-            <>
-              <button
-                onClick={reset}
-                style={{
-                  padding: "10px 10px",
-                  borderRadius: "10px",
-                  borderWidth: 2,
-                  borderStyle: "solid",
-                  borderColor: "#e5e7eb",
-                  background: "#fff",
-                  color: "#111827",
-                  cursor: "pointer",
-                  transition: "all .15s ease",
-                  fontWeight: 600,
-                  fontFamily: "sans-serif",
-                  fontSize: 18,
-                }}
-              >
-                пройти снова
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowTests(false);
-                  setSelectedByQuestion({});
-                  setChecked(false);
-                  setCurrent(0);
-                }}
-                style={{
-                  padding: "10px 10px",
-                  borderRadius: "10px",
-                  borderWidth: 2,
-                  borderStyle: "solid",
-                  borderColor: "#e5e7eb",
-                  background: "#fff",
-                  color: "#111827",
-                  cursor: "pointer",
-                  transition: "all .15s ease",
-                  fontWeight: 600,
-                  fontFamily: "sans-serif",
-                  fontSize: 18,
-                }}
-              >
-                ← Вернуться к тексту
-              </button>
-
-              {allCorrect && (
-                <button
-                  onClick={() => navigate("/card")}
-                  style={{
-                    padding: "10px 10px",
-                    borderRadius: "10px",
-                    borderWidth: 2,
-                    borderStyle: "solid",
-                    borderColor: "#10b981",
-                    background: "#10b981",
-                    color: "#fff",
-                    cursor: "pointer",
-                    transition: "all .15s ease",
-                    fontWeight: 600,
-                    fontFamily: "sans-serif",
-                    fontSize: 18,
-                  }}
-                >
-                  перейти к карточкам
-                </button>
-              )}
-            </>
-          )}
+          Всего вопросов: {questions.length}
         </div>
-        )}
       </div>
     </main>
   );
