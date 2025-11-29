@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import quest1 from "../assets/quest1.png";
 import quest2 from "../assets/quest2.png";
 import quest3 from "../assets/quest3.png";
@@ -6,37 +7,89 @@ import quest4 from "../assets/quest4.png";
 import quest5 from "../assets/quest5.png";
 
 export default function Article() {
-  // Пример большого текста для демонстрации
-  const longText = `
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+  const [searchParams] = useSearchParams();
+  const articleId = parseInt(searchParams.get("id") || "1", 10);
+  const [showButton, setShowButton] = useState(false);
+  const textContainerRef = useRef(null);
+  const navigate = useNavigate();
 
-    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+  // Массив статей с текстом
+  const articles = [
+    {
+      id: 1,
+      title: "Первая статья",
+      text: `Введение в основы программирования
 
-    Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?
+Программирование — это искусство создания инструкций для компьютера. Каждая программа состоит из последовательности команд, которые компьютер выполняет для решения определенной задачи.
 
-    Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+Основные концепции программирования включают переменные, которые хранят данные, функции, которые выполняют определенные действия, и структуры данных, которые организуют информацию эффективным образом.
 
-    Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.
+Языки программирования служат мостом между человеком и компьютером. Они позволяют нам писать код на понятном нам языке, который затем преобразуется в машинный код, понятный компьютеру.
 
-    Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.
+Современные языки программирования предлагают множество возможностей: от простых скриптов до сложных приложений. Выбор языка зависит от задачи, которую нужно решить, и от предпочтений разработчика.
 
-    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Изучение программирования требует практики и терпения. Начните с простых задач и постепенно переходите к более сложным проектам. Помните, что каждый программист когда-то был новичком.`,
+    },
+    {
+      id: 2,
+      title: "Вторая статья",
+      text: `Продвинутые техники разработки
 
-    Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?
+После освоения основ программирования важно изучить продвинутые техники, которые помогут создавать более эффективные и масштабируемые приложения.
 
-    Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur? At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+Архитектура программного обеспечения играет ключевую роль в создании больших систем. Правильная архитектура позволяет легко добавлять новые функции, поддерживать код и масштабировать приложение.
 
-    Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.
-  `.trim();
+Тестирование кода — неотъемлемая часть разработки. Написание тестов помогает убедиться, что код работает правильно и не ломается при внесении изменений. Существуют различные виды тестов: unit-тесты, интеграционные тесты и end-to-end тесты.
+
+Оптимизация производительности — важный аспект разработки. Необходимо понимать, как работает код на низком уровне, чтобы находить узкие места и улучшать производительность приложения.
+
+Работа в команде требует знания систем контроля версий, таких как Git. Умение эффективно использовать Git позволяет работать над проектом совместно с другими разработчиками без конфликтов.
+
+Изучение новых технологий и фреймворков — постоянный процесс в карьере разработчика. Важно следить за трендами в индустрии и быть готовым к обучению новым инструментам.`,
+    },
+  ];
+
+  // Находим статью по id
+  const currentArticle = articles.find((article) => article.id === articleId) || articles[0];
 
   // Массив изображений для отображения
   const images = [quest1, quest2, quest3, quest4, quest5];
+
+  // Отслеживание прокрутки до конца текста
+  useEffect(() => {
+    const textContainer = textContainerRef.current;
+    if (!textContainer) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = textContainer;
+      // Проверяем, достигнут ли конец прокрутки (с небольшим допуском в 5px)
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
+      setShowButton(isAtBottom);
+    };
+
+    // Проверяем сразу при загрузке, если контент уже помещается
+    handleScroll();
+
+    textContainer.addEventListener("scroll", handleScroll);
+    // Также проверяем при изменении размера окна
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      textContainer.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [currentArticle]);
+
+  // Функция для перехода к тестам
+  const handleGoToTests = () => {
+    navigate(`/tests?articleId=${articleId}`);
+  };
 
   return (
     <main style={{ position: "relative", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
       <div style={{ margin: "0 auto", width: "100%" }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 600, marginBottom: "2rem", color: "white" }}>
-          Статья
+          {currentArticle.title}
         </h1>
 
         <div
@@ -48,9 +101,10 @@ export default function Article() {
         >
           {/* Секция с текстом */}
           <div
+            ref={textContainerRef}
             style={{
               flex: 1,
-              background: "#ffffff",
+              // background: "#ffffff",
               borderRadius: "16px",
               padding: "2rem",
               borderWidth: 1,
@@ -61,7 +115,7 @@ export default function Article() {
               overflowY: "auto",
               lineHeight: "1.8",
               fontSize: "1rem",
-              color: "#374151",
+              color: "white",
             }}
           >
             <div
@@ -71,8 +125,45 @@ export default function Article() {
                 textAlign: "justify",
               }}
             >
-              {longText}
+              {currentArticle.text}
             </div>
+            {showButton && (
+              <div
+                style={{
+                  marginTop: "2rem",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <button
+                  onClick={handleGoToTests}
+                  style={{
+                    padding: "0.75rem 2rem",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    color: "white",
+                    background: "#6366f1",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#4f46e5";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#6366f1";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+                  }}
+                >
+                  Перейти к тестам
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Секция с изображениями */}
@@ -88,7 +179,7 @@ export default function Article() {
               borderColor: "#e5e7eb",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
               maxHeight: "70vh",
-              overflowY: "auto",
+              overflowY: "auto", background: "none"
             }}
           >
             {/* <h2
