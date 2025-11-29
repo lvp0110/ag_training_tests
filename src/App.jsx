@@ -37,19 +37,11 @@ export default function App() {
         <NavLink to="/tests" style={active}>
           Тест
         </NavLink>
-        {/* Временно закомментировано для восстановления раскомментировать: */}
-        {/* <NavLink to="/card" style={active}>
-          Карточки
-        </NavLink>
-        <NavLink to="/solution" style={active}>
-          Решение
-        </NavLink> */}
       </header>
 
       <main
         style={{
           flex: 1,
-          // display: "flex",
           alignItems: "start",
           justifyContent: "start",
           padding: "24px 0",
