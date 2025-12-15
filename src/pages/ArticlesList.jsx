@@ -1,21 +1,60 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_ENDPOINTS } from "../config/api";
 
 export default function ArticlesList() {
   const navigate = useNavigate();
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Список статей - только первые две активны
-  const articles = [
-    { id: 1, title: "Первая статья", description: "Описание первой статьи", active: true },
-    { id: 2, title: "Вторая статья", description: "Описание второй статьи", active: true },
-    { id: 3, title: "Третья статья", description: "Описание третьей статьи", active: false },
-    { id: 4, title: "Четвертая статья", description: "Описание четвертой статьи", active: false },
-    { id: 5, title: "Пятая статья", description: "Описание пятой статьи", active: false },
-  ];
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch(API_ENDPOINTS.THEMAS, {
+          method: 'GET',
+          headers: {
+            'accept': 'application/json',
+          },
+        });
 
-  const handleArticleClick = (articleId, isActive) => {
-    if (isActive) {
-      navigate(`/article?id=${articleId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Проверяем структуру данных
+        let articlesData = [];
+        if (Array.isArray(data)) {
+          articlesData = data;
+        } else if (data && typeof data === "object") {
+          // Пытаемся найти массив статей в объекте
+          articlesData = data.themas || data.data || data.items || data.articles || [];
+        }
+        // Делаем все статьи активными при получении из API
+        const articlesWithActive = articlesData.map(article => ({
+          ...article,
+          active: true
+        }));
+        setArticles(articlesWithActive);
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching articles:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  const handleArticleClick = (articleCode, isActive) => {
+    // Все статьи активны после загрузки из API, поэтому просто проверяем наличие code
+    if (articleCode) {
+      navigate(`/article?code=${articleCode}`);
     }
   };
 
@@ -38,17 +77,30 @@ export default function ArticlesList() {
         Список статей
       </h1>
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1rem",
-        }}
-      >
-        {articles.map((article) => (
+      {loading && (
+        <div style={{ color: "white", textAlign: "center", padding: "2rem" }}>
+          Загрузка статей...
+        </div>
+      )}
+
+      {error && (
+        <div style={{ color: "#ef4444", textAlign: "center", padding: "2rem" }}>
+          Ошибка загрузки статей: {error}
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
+          }}
+        >
+          {articles.map((article, index) => (
           <div
-            key={article.id}
-            onClick={() => handleArticleClick(article.id, article.active)}
+            key={article.Code || article.code || article.id || article._id || index}
+            onClick={() => handleArticleClick(article.Code || article.code, article.active)}
             style={{
               borderRadius: "12px",
               padding: "1.5rem",
@@ -82,7 +134,7 @@ export default function ArticlesList() {
                 marginBottom: "0.5rem",
               }}
             >
-              {article.title}
+              {article.Name || article.name || article.title || article.Title || "Без названия"}
             </h2>
             <p
               style={{
@@ -91,12 +143,13 @@ export default function ArticlesList() {
                 margin: 0,
               }}
             >
-              {article.description}
+              {article.description || article.desc || article.Description || ""}
               {!article.active && " (недоступно)"}
             </p>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
