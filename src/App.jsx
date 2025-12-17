@@ -1,9 +1,22 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 
 export default function App() {
-  const active = ({ isActive }) =>
-    isActive ? { fontWeight: "700" } : undefined;
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const getLinkStyle = (path) => {
+    const isActive = currentPath === path;
+    return {
+      fontSize: "1.1rem",
+      fontWeight: isActive ? "600" : "400",
+      color: isActive ? "#1f2937" : "#6b7280",
+      cursor: "default",
+      textDecoration: "none",
+      padding: "8px 0",
+      transition: "color 0.2s ease",
+    };
+  };
 
   return (     
     <div
@@ -13,30 +26,31 @@ export default function App() {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        paddingInline: 16,
       }}
     >
       <header
         style={{
+          width: "100%",
           display: "flex",
-          gap: 16,
-          padding: "16px 0",
+          gap: 24,
+          padding: "20px 16px",
           position: "sticky",
           top: 0,
           zIndex: 10,
           borderBottom: "1px solid #eee",
+          backgroundColor: "#fffe",
         }}
       >
        
-        <NavLink to="/articles" style={active}>
+        <span style={getLinkStyle("/articles")}>
           Список статей
-        </NavLink>
-        <NavLink to="/article" style={active}>
+        </span>
+        <span style={getLinkStyle("/article")}>
           Статья
-        </NavLink>
-        <NavLink to="/tests" style={active}>
+        </span>
+        <span style={getLinkStyle("/tests")}>
           Тест
-        </NavLink>
+        </span>
       </header>
 
       <main
@@ -44,7 +58,7 @@ export default function App() {
           flex: 1,
           alignItems: "start",
           justifyContent: "start",
-          padding: "24px 0",
+          padding: "24px 16px",
         }}
       >
         <Outlet />
@@ -54,7 +68,7 @@ export default function App() {
         style={{
           marginTop: "auto",
           opacity: 0.7,
-          padding: "12px 0",
+          padding: "12px 16px",
           borderTop: "1px solid #eee",
         }}
       >

@@ -29,5 +29,7 @@ export const API_ENDPOINTS = {
   THEMAS: `${API_BASE_URL}/themas`,
   // Функция для получения эндпоинта статьи по коду
   THEMA: (code) => `${API_BASE_URL}/thema/${code}`,
+  // Функция для получения вопросов по коду темы
+  THEMA_QUESTIONS: (code) => `${API_BASE_URL}/thema/${code}/questions`,
 };
 

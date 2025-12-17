@@ -12,10 +12,10 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter basename="/ag_training_tests">
       <Routes>
         <Route path='/' element={<App />}>
-          <Route index element={<Navigate to="/tests" replace />} />
-          <Route path='tests' element={<Tests />} />
+          <Route index element={<Navigate to="/articles" replace />} />
           <Route path='articles' element={<ArticlesList />} />
           <Route path='article' element={<Article />} />
+          <Route path='tests' element={<Tests />} />
         </Route>
       </Routes>
     </BrowserRouter>

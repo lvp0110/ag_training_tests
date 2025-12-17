@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "../config/api";
+import "./Article.css";
 import quest1 from "../assets/quest1.png";
 import quest2 from "../assets/quest2.png";
 import quest3 from "../assets/quest3.png";
@@ -17,9 +18,55 @@ export default function Article() {
   const [articleTitle, setArticleTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isNarrowScreen, setIsNarrowScreen] = useState(false);
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
+  const [imagesOpen, setImagesOpen] = useState(false);
 
   // Массив изображений для отображения
   const images = [quest1, quest2, quest3, quest4, quest5];
+
+  // Перенаправление на список статей, если код не указан
+  useEffect(() => {
+    if (!articleCode && !articleId) {
+      navigate("/articles", { replace: true });
+      return;
+    }
+  }, [articleCode, articleId, navigate]);
+
+  // Адаптив: на экранах < 1440px блок изображений скрыт, но можно открыть кнопкой
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const mqNarrow = window.matchMedia("(max-width: 1440px)");
+    const mqMobile = window.matchMedia("(max-width: 1023px)");
+
+    const apply = () => {
+      const narrow = mqNarrow.matches;
+      const mobile = mqMobile.matches;
+      setIsNarrowScreen(narrow);
+      setIsMobileScreen(mobile);
+      setImagesOpen(!narrow); // на широких всегда показываем, на узких по умолчанию скрываем
+    };
+
+    apply();
+
+    const cleanup = [];
+    const add = (mq) => {
+      if (typeof mq.addEventListener === "function") {
+        mq.addEventListener("change", apply);
+        cleanup.push(() => mq.removeEventListener("change", apply));
+      } else {
+        // Safari fallback
+        mq.addListener(apply);
+        cleanup.push(() => mq.removeListener(apply));
+      }
+    };
+
+    add(mqNarrow);
+    add(mqMobile);
+
+    return () => cleanup.forEach((fn) => fn());
+  }, []);
 
   // Загрузка статьи по code из API
   useEffect(() => {
@@ -130,10 +177,24 @@ export default function Article() {
 
   return (
     <main style={{ position: "relative", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
-      <div style={{ margin: "0 auto", width: "100%" }}>
+      <div style={{ margin: "0 auto", width: "100%", paddingLeft: "4rem", paddingRight: "4rem" }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 600, marginBottom: "2rem", color: "white" }}>
           {articleTitle || "Загрузка..."}
         </h1>
+
+        {isNarrowScreen && !loading && !error && (
+          <button
+            type="button"
+            className="article-images-toggle"
+            onClick={() => setImagesOpen((v) => !v)}
+            aria-expanded={imagesOpen}
+            aria-controls="article-images-panel"
+            aria-label={imagesOpen ? "Скрыть изображения" : "Показать изображения"}
+            title={imagesOpen ? "Скрыть изображения" : "Показать изображения"}
+          >
+            {imagesOpen ? "📷" : "📸"}
+          </button>
+        )}
 
         <div
           style={{
@@ -143,99 +204,125 @@ export default function Article() {
           }}
         >
           {/* Секция с текстом */}
-          <div
-            ref={textContainerRef}
-            style={{
-              flex: 1,
-              borderRadius: "16px",
-              padding: "2rem",
-              borderWidth: 1,
-              borderStyle: "solid",
-              borderColor: "#e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              maxHeight: "70vh",
-              overflowY: "auto",
-              lineHeight: "1.8",
-              fontSize: "1rem",
-              color: "white",
-              scrollBehavior: "smooth",
-            }}
-          >
-            {loading && (
-              <div style={{ textAlign: "center", padding: "2rem" }}>
-                Загрузка статьи...
-              </div>
-            )}
-            {error && (
-              <div style={{ color: "#ef4444", textAlign: "center", padding: "2rem" }}>
-                Ошибка загрузки статьи: {error}
-              </div>
-            )}
-            {!loading && !error && (
-              <>
-                <div
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    wordWrap: "break-word",
-                    textAlign: "justify",
-                  }}
-                >
-                  {articleText}
+          {(!isMobileScreen || !imagesOpen) && (
+            <div
+              ref={textContainerRef}
+              style={{
+                flex: 1,
+                borderRadius: "16px",
+                padding: "2rem",
+                borderWidth: 1,
+                borderStyle: "solid",
+                borderColor: "#e5e7eb",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                maxHeight: "70vh",
+                overflowY: "auto",
+                lineHeight: "1.8",
+                fontSize: "1rem",
+                color: "white",
+                scrollBehavior: "smooth",
+              }}
+            >
+              {loading && (
+                <div style={{ textAlign: "center", padding: "2rem" }}>
+                  Загрузка статьи...
                 </div>
-                <div
-                  style={{
-                    marginTop: "2rem",
-                    display: "flex",
-                    justifyContent: "center",
-                  }}
-                >
-                  <button
-                    onClick={handleGoToTests}
+              )}
+              {error && (
+                <div style={{ color: "#ef4444", textAlign: "center", padding: "2rem" }}>
+                  Ошибка загрузки статьи: {error}
+                </div>
+              )}
+              {!loading && !error && (
+                <>
+                  <div
                     style={{
-                      padding: "0.75rem 2rem",
-                      fontSize: "1rem",
-                      fontWeight: 600,
-                      color: "white",
-                      background: "#6366f1",
-                      border: "none",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#4f46e5";
-                      e.currentTarget.style.transform = "translateY(-2px)";
-                      e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#6366f1";
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+                      marginBottom: "1.5rem",
+                      display: "flex",
+                      justifyContent: "flex-start",
                     }}
                   >
-                    Перейти к тестам
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
+                    <button
+                      onClick={() => navigate("/articles")}
+                      style={{
+                        padding: "0.75rem 1.5rem",
+                        fontSize: "0.95rem",
+                        fontWeight: 600,
+                        color: "white",
+                        background: "#6b7280",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#4b5563";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#6b7280";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+                      }}
+                    >
+                      ← Вернуться к списку статей
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      whiteSpace: "pre-wrap",
+                      wordWrap: "break-word",
+                      textAlign: "justify",
+                    }}
+                  >
+                    {articleText}
+                  </div>
+                  <div
+                    style={{
+                      marginTop: "2rem",
+                      display: "flex",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <button
+                      onClick={handleGoToTests}
+                      style={{
+                        padding: "0.75rem 2rem",
+                        fontSize: "1rem",
+                        fontWeight: 600,
+                        color: "white",
+                        background: "#6366f1",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#4f46e5";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#6366f1";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
+                      }}
+                    >
+                      Перейти к тестам
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           {/* Секция с изображениями */}
           <div
-            style={{
-              width: "350px",
-              flexShrink: 0,
-              background: "#ffffff",
-              borderRadius: "16px",
-              padding: "2rem",
-              borderWidth: 1,
-              borderStyle: "solid",
-              borderColor: "#e5e7eb",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              maxHeight: "70vh",
-              overflowY: "auto", background: "none"
-            }}
+            id="article-images-panel"
+            className={`article-images${isNarrowScreen && imagesOpen ? " is-open" : ""}`}
           >
             {/* <h2
               style={{

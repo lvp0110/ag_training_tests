@@ -5,10 +5,17 @@ import { API_ENDPOINTS } from "../config/api";
 export default function Tests() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const articleId = searchParams.get("articleId") || "1";
+  const articleId = searchParams.get("articleId") || "";
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Перенаправление на список статей, если articleId не указан
+  useEffect(() => {
+    if (!articleId) {
+      navigate("/articles", { replace: true });
+    }
+  }, [articleId, navigate]);
   // Храним выбранные ответы: ключ - question_code, значение - code выбранного ответа
   const [selectedAnswers, setSelectedAnswers] = useState({});
   // Храним результаты проверки: ключ - question_code, значение - { isCorrect: boolean, checking: boolean, error: string, correctAnswerCode: string }
@@ -45,12 +52,17 @@ export default function Tests() {
 
   useEffect(() => {
     const fetchQuestions = async () => {
+      if (!articleId) {
+        setError("Код темы не указан");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
 
-        // Пытаемся получить вопросы через GET /answers (основной эндпоинт для получения вопросов)
-        // /check используется для POST запросов (проверка ответов)
-        let response = await fetch(API_ENDPOINTS.ANSWERS, {
+        // Получаем вопросы через GET /thema/{code}/questions
+        let response = await fetch(API_ENDPOINTS.THEMA_QUESTIONS(articleId), {
           method: "GET",
           headers: {
             accept: "application/json",
@@ -62,7 +74,6 @@ export default function Tests() {
         }
 
         const data = await response.json();
-        console.log("Получены данные с сервера:", data);
 
         // Проверяем структуру данных
         let questionsData = [];
@@ -73,7 +84,6 @@ export default function Tests() {
           questionsData = data.questions || data.data || data.items || [];
         }
 
-        console.log("Список вопросов:", questionsData);
         setQuestions(questionsData);
         setError(null);
       } catch (err) {
@@ -97,7 +107,7 @@ export default function Tests() {
     };
 
     fetchQuestions();
-  }, []);
+  }, [articleId]);
 
   // Функция для проверки ответа через /check
   const checkAnswer = async (questionCode, answerCode) => {
@@ -564,7 +574,7 @@ export default function Tests() {
                         margin: 0,
                         fontSize: "1.25rem",
                         fontWeight: 600,
-                        color: "#111827",
+                        color: "rgb(226 229 235)",
                       }}
                     >
                       {questionText}
@@ -757,7 +767,7 @@ export default function Tests() {
                       </button>
                     ) : (
                       <button
-                        onClick={() => navigate(`/article?id=${articleId}`)}
+                        onClick={() => navigate(`/article?code=${articleId}`)}
                         style={{
                           padding: "0.75rem 2rem",
                           fontSize: "1rem",
