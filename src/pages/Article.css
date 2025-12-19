@@ -46,16 +46,16 @@
   display: none;
 }
 
+.article-layout--no-gap {
+  gap: 0 !important;
+}
+
 @media (max-width: 1440px) {
   .article-images-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    position: fixed;
-    right: 1rem;
-    top: 6.5rem;
-    z-index: 50;
     padding: 0.75rem 1rem;
     font-size: 2rem;
     font-weight: 600;
@@ -75,10 +75,17 @@
   }
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
+  .article-layout {
+    justify-content: center;
+  }
+
   .article-images.is-open {
     width: 100%;
+    max-width: 100%;
     max-height: 70vh;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 

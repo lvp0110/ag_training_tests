@@ -68,6 +68,24 @@ export default function Article() {
     return () => cleanup.forEach((fn) => fn());
   }, []);
 
+  // Управление из глобального header (App.jsx)
+  useEffect(() => {
+    const onToggle = () => {
+      if (!isNarrowScreen) return;
+      setImagesOpen((v) => !v);
+    };
+
+    window.addEventListener("articleImagesToggle", onToggle);
+    return () => window.removeEventListener("articleImagesToggle", onToggle);
+  }, [isNarrowScreen]);
+
+  // Сообщаем header текущее состояние (для иконки)
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("articleImagesState", { detail: { open: imagesOpen } })
+    );
+  }, [imagesOpen]);
+
   // Загрузка статьи по code из API
   useEffect(() => {
     const fetchArticle = async () => {
@@ -182,21 +200,8 @@ export default function Article() {
           {articleTitle || "Загрузка..."}
         </h1>
 
-        {isNarrowScreen && !loading && !error && (
-          <button
-            type="button"
-            className="article-images-toggle"
-            onClick={() => setImagesOpen((v) => !v)}
-            aria-expanded={imagesOpen}
-            aria-controls="article-images-panel"
-            aria-label={imagesOpen ? "Скрыть изображения" : "Показать изображения"}
-            title={imagesOpen ? "Скрыть изображения" : "Показать изображения"}
-          >
-            {imagesOpen ? "📷" : "📸"}
-          </button>
-        )}
-
         <div
+          className={isNarrowScreen && !imagesOpen ? "article-layout article-layout--no-gap" : "article-layout"}
           style={{
             display: "flex",
             gap: "2rem",

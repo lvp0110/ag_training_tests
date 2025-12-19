@@ -1,9 +1,12 @@
 import { Outlet, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 
 export default function App() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [isNarrowScreen, setIsNarrowScreen] = useState(false);
+  const [articleImagesOpen, setArticleImagesOpen] = useState(false);
 
   const getLinkStyle = (path) => {
     const isActive = currentPath === path;
@@ -16,6 +19,34 @@ export default function App() {
       padding: "8px 0",
       transition: "color 0.2s ease",
     };
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(max-width: 1440px)");
+    const apply = () => setIsNarrowScreen(mq.matches);
+    apply();
+
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", apply);
+      return () => mq.removeEventListener("change", apply);
+    }
+    mq.addListener(apply);
+    return () => mq.removeListener(apply);
+  }, []);
+
+  useEffect(() => {
+    const onState = (e) => {
+      setArticleImagesOpen(Boolean(e?.detail?.open));
+    };
+    window.addEventListener("articleImagesState", onState);
+    return () => window.removeEventListener("articleImagesState", onState);
+  }, []);
+
+  const showImagesButton = isNarrowScreen && currentPath === "/article";
+
+  const toggleImages = () => {
+    window.dispatchEvent(new Event("articleImagesToggle"));
   };
 
   return (     
@@ -31,7 +62,11 @@ export default function App() {
       <header
         style={{
           width: "100%",
+          maxWidth: "100%",
           display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
           gap: 24,
           padding: "20px 16px",
           position: "sticky",
@@ -39,18 +74,33 @@ export default function App() {
           zIndex: 10,
           borderBottom: "1px solid #eee",
           backgroundColor: "#fffe",
+          boxSizing: "border-box",
+          overflowX: "hidden",
         }}
       >
-       
-        <span style={getLinkStyle("/articles")}>
-          Список статей
-        </span>
-        <span style={getLinkStyle("/article")}>
-          Статья
-        </span>
-        <span style={getLinkStyle("/tests")}>
-          Тест
-        </span>
+        <div style={{ display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap", minWidth: 0 }}>
+          <span style={getLinkStyle("/articles")}>
+            Список статей
+          </span>
+          <span style={getLinkStyle("/article")}>
+            Статья
+          </span>
+          <span style={getLinkStyle("/tests")}>
+            Тест
+          </span>
+        </div>
+
+        {showImagesButton && (
+          <button
+            type="button"
+            className="article-images-toggle"
+            onClick={toggleImages}
+            aria-label={articleImagesOpen ? "Скрыть изображения" : "Показать изображения"}
+            title={articleImagesOpen ? "Скрыть изображения" : "Показать изображения"}
+          >
+            {articleImagesOpen ? "📸" : "📷"}
+          </button>
+        )}
       </header>
 
       <main
