@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { API_ENDPOINTS } from "../config/api";
+import "./Tests.css";
 
 export default function Tests() {
   const [searchParams] = useSearchParams();
@@ -20,35 +21,6 @@ export default function Tests() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   // Храним результаты проверки: ключ - question_code, значение - { isCorrect: boolean, checking: boolean, error: string, correctAnswerCode: string }
   const [checkResults, setCheckResults] = useState({});
-
-  // Общие стили для переиспользования
-  const mainContainerStyle = {
-    position: "relative",
-    minHeight: "100vh",
-    display: "flex",
-    justifyContent: "center",
-  };
-
-  const contentContainerStyle = {
-    maxWidth: 600,
-    boxSizing: "border-box",
-  };
-
-  const centerContainerStyle = {
-    ...contentContainerStyle,
-    textAlign: "center",
-  };
-
-  // Базовые стили для вариантов ответов
-  const baseAnswerStyle = {
-    padding: "0.75rem 1rem",
-    borderRadius: "8px",
-    fontSize: "0.9375rem",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    cursor: "default",
-  };
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -325,11 +297,13 @@ export default function Tests() {
     checkAnswer(questionCode, answerCode);
   };
 
-  // Получить стиль для варианта ответа
-  const getAnswerStyle = (questionCode, answerCode) => {
+  // Получить классы для варианта ответа
+  const getAnswerClasses = (questionCode, answerCode) => {
     const selected = selectedAnswers[questionCode] === answerCode;
     const result = checkResults[questionCode];
     const isAnswered = selectedAnswers[questionCode] !== undefined;
+
+    let classes = ["tests-answer-item"];
 
     // Если вопрос проверен
     if (result && !result.checking && isAnswered) {
@@ -342,92 +316,38 @@ export default function Tests() {
 
       // Если это правильный ответ - всегда показываем зеленым
       if (isCorrectAnswer) {
-        return {
-          ...baseAnswerStyle,
-          background: "#f0fdf4",
-          borderWidth: 2,
-          borderStyle: "solid",
-          borderColor: "#10b981",
-          color: "#065f46",
-          boxShadow: "0 0 0 3px rgba(16,185,129,0.1)",
-        };
+        classes.push("tests-answer-item--correct");
       }
-
       // Если это неправильно выбранный ответ - показываем красным
-      if (selected && result.isCorrect === false) {
-        return {
-          ...baseAnswerStyle,
-          background: "#fef2f2",
-          borderWidth: 2,
-          borderStyle: "solid",
-          borderColor: "#ef4444",
-          color: "#991b1b",
-          boxShadow: "0 0 0 3px rgba(239,68,68,0.1)",
-        };
+      else if (selected && result.isCorrect === false) {
+        classes.push("tests-answer-item--incorrect");
+      }
+      // Если вопрос проверен и это не выбранный и не правильный ответ - приглушаем
+      else if (!selected && result.correctAnswerCode !== String(answerCode)) {
+        classes.push("tests-answer-item--muted");
       }
     }
-
     // Если проверяется
-    if (selected && result && result.checking) {
-      return {
-        ...baseAnswerStyle,
-        background: "#fffbeb",
-        borderWidth: 2,
-        borderStyle: "solid",
-        borderColor: "#f59e0b",
-        color: "#92400e",
-      };
+    else if (selected && result && result.checking) {
+      classes.push("tests-answer-item--checking");
     }
-
     // Если выбран, но еще не проверен
-    if (selected && (!result || result.checking)) {
-      return {
-        ...baseAnswerStyle,
-        background: "#f3f4f6",
-        borderWidth: 2,
-        borderStyle: "solid",
-        borderColor: "#6366f1",
-        color: "#374151",
-      };
+    else if (selected && (!result || result.checking)) {
+      classes.push("tests-answer-item--selected");
+    }
+    // Если не выбран и вопрос не отвечен - можно выбрать
+    else if (!isAnswered) {
+      classes.push("tests-answer-item--selectable");
     }
 
-    // Если вопрос проверен и это не выбранный и не правильный ответ - приглушаем
-    if (
-      result &&
-      !result.checking &&
-      isAnswered &&
-      !selected &&
-      result.correctAnswerCode !== String(answerCode)
-    ) {
-      return {
-        ...baseAnswerStyle,
-        background: "#f9fafb",
-        borderWidth: 1,
-        borderStyle: "solid",
-        borderColor: "#e5e7eb",
-        color: "#9ca3af",
-        opacity: 0.6,
-      };
-    }
-
-    // Обычное состояние (не выбран)
-    return {
-      ...baseAnswerStyle,
-      background: "#f9fafb",
-      borderWidth: 1,
-      borderStyle: "solid",
-      borderColor: "#e5e7eb",
-      color: "#374151",
-      cursor: isAnswered ? "default" : "pointer",
-      transition: "all 0.2s ease",
-    };
+    return classes.join(" ");
   };
 
   if (loading) {
     return (
-      <main style={mainContainerStyle}>
-        <div style={centerContainerStyle}>
-          <p style={{ fontSize: "1rem", color: "#6b7280" }}>
+      <main className="tests-main-container">
+        <div className="tests-center-container">
+          <p className="tests-loading">
             Загрузка вопросов...
           </p>
         </div>
@@ -437,9 +357,9 @@ export default function Tests() {
 
   if (error) {
     return (
-      <main style={mainContainerStyle}>
-        <div style={centerContainerStyle}>
-          <p style={{ fontSize: "1rem", color: "#ef4444" }}>
+      <main className="tests-main-container">
+        <div className="tests-center-container">
+          <p className="tests-error">
             Ошибка загрузки: {error}
           </p>
         </div>
@@ -448,40 +368,21 @@ export default function Tests() {
   }
 
   return (
-    <main style={mainContainerStyle}>
-      <div style={contentContainerStyle}>
-        <h1
-          style={{
-            fontSize: "2rem",
-            fontWeight: 600,
-            marginBottom: "2rem",
-            color: "white",
-          }}
-        >
+    <main className="tests-main-container">
+      <div className="tests-content-container">
+        <h1 className="tests-title">
           Вопросы
         </h1>
 
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-        >
+        <div className="tests-questions-container">
         {questions.length === 0 ? (
-          <div
-            style={{
-              background: "#f3f4f6",
-              borderRadius: "12px",
-              padding: "2rem",
-              textAlign: "center",
-              width: "100%",
-            }}
-          >
-            <p style={{ margin: 0, fontSize: "1rem", color: "#6b7280" }}>
+          <div className="tests-no-questions">
+            <p className="tests-no-questions-text">
               Нет доступных вопросов
             </p>
           </div>
         ) : (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-          >
+          <div className="tests-questions-container">
             {questions.map((question, index) => {
               // Извлекаем код вопроса (структура: Code - это question_code для /check POST)
               const questionCode =
@@ -557,41 +458,16 @@ export default function Tests() {
               return (
                 <section
                   key={questionCode || question.id || question._id || index}
-                  style={{
-                    background: "#ffffff40",
-                    borderRadius: "16px",
-                    padding: "1.5rem",
-                    borderWidth: 1,
-                    borderStyle: "solid",
-                    borderColor: "#e5e7eb",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                    width: "100%",
-                  }}
+                  className="tests-question-section"
                 >
-                  <div style={{ marginBottom: "1rem" }}>
-                    <h2
-                      style={{
-                        margin: 0,
-                        fontSize: "1.25rem",
-                        fontWeight: 600,
-                        color: "rgb(226 229 235)",
-                      }}
-                    >
+                  <div className="tests-question-title-container">
+                    <h2 className="tests-question-title">
                       {questionText}
                     </h2>
                   </div>
 
                   {Array.isArray(options) && options.length > 0 ? (
-                    <ul
-                      style={{
-                        listStyle: "none",
-                        padding: 0,
-                        margin: 0,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "0.5rem",
-                      }}
-                    >
+                    <ul className="tests-answers-list">
                       {options.map((option, optIndex) => {
                         // option уже имеет структуру { code, text }
                         const optionCode = option.code || String(optIndex + 1);
@@ -614,80 +490,30 @@ export default function Tests() {
                                 handleAnswerSelect(questionCode, optionCode);
                               }
                             }}
-                            style={getAnswerStyle(questionCode, optionCode)}
-                            onMouseEnter={(e) => {
-                              if (!isAnswered && !selected) {
-                                e.currentTarget.style.background = "#f3f4f6";
-                                e.currentTarget.style.borderColor = "#d1d5db";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isAnswered && !selected) {
-                                e.currentTarget.style.background = "#f9fafb";
-                                e.currentTarget.style.borderColor = "#e5e7eb";
-                              }
-                            }}
+                            className={getAnswerClasses(questionCode, optionCode)}
                           >
-                            <span style={{ fontWeight: selected ? 600 : 400 }}>
+                            <span className={selected ? "tests-answer-text--selected" : "tests-answer-text"}>
                               {optionText}
                               {isChecking && (
-                                <span
-                                  style={{
-                                    marginLeft: "0.5rem",
-                                    fontSize: "0.875rem",
-                                    fontStyle: "italic",
-                                  }}
-                                >
+                                <span className="tests-checking-indicator">
                                   (проверка...)
                                 </span>
                               )}
                             </span>
-                            {/* <span
-                              style={{
-                                fontSize: "0.75rem",
-                                color: "#9ca3af",
-                                marginLeft: "0.5rem",
-                              }}
-                            >
-                              Code: {optionCode}
-                            </span> */}
                           </li>
                         );
                       })}
                     </ul>
                   ) : (
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "0.875rem",
-                        color: "#9ca3af",
-                        fontStyle: "italic",
-                      }}
-                    >
+                    <p className="tests-no-answers">
                       Нет вариантов ответа
                     </p>
                   )}
 
                   {/* Отображение ошибки проверки, если она есть */}
                   {checkResults[questionCode]?.error && (
-                    <div
-                      style={{
-                        marginTop: "1rem",
-                        padding: "0.75rem 1rem",
-                        background: "#fef2f2",
-                        borderRadius: "8px",
-                        borderWidth: 1,
-                        borderStyle: "solid",
-                        borderColor: "#ef4444",
-                      }}
-                    >
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: "0.875rem",
-                          color: "#dc2626",
-                        }}
-                      >
+                    <div className="tests-error-message">
+                      <p className="tests-error-message-text">
                         Ошибка при проверке ответа:{" "}
                         {checkResults[questionCode].error}
                       </p>
@@ -699,20 +525,7 @@ export default function Tests() {
           </div>
         )}
 
-        <div
-          style={{
-            background: "#ffffff",
-            borderRadius: "16px",
-            padding: "1.5rem",
-            borderWidth: 1,
-            borderStyle: "solid",
-            borderColor: "#e5e7eb",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            fontSize: "1.1rem",
-            color: "#6b7280",
-            width: "100%",
-          }}
-        >
+        <div className="tests-summary">
           Всего вопросов: {questions.length}
           {(() => {
             const correctCount = Object.values(checkResults).filter(
@@ -736,60 +549,18 @@ export default function Tests() {
                 {" | "}
                 Правильных ответов: {correctCount} ({percentage}%)
                 {isAllAnswered && isAllChecked && (
-                  <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center" }}>
+                  <div className="tests-summary-actions">
                     {isPerfect ? (
                       <button
                         onClick={() => navigate("/articles")}
-                        style={{
-                          padding: "0.75rem 2rem",
-                          fontSize: "1rem",
-                          fontWeight: 600,
-                          color: "white",
-                          background: "#10b981",
-                          border: "none",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#059669";
-                          e.currentTarget.style.transform = "translateY(-2px)";
-                          e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#10b981";
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
-                        }}
+                        className="tests-button tests-button--success"
                       >
                         Продолжить
                       </button>
                     ) : (
                       <button
                         onClick={() => navigate(`/article?code=${articleId}`)}
-                        style={{
-                          padding: "0.75rem 2rem",
-                          fontSize: "1rem",
-                          fontWeight: 600,
-                          color: "white",
-                          background: "#6366f1",
-                          border: "none",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#4f46e5";
-                          e.currentTarget.style.transform = "translateY(-2px)";
-                          e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#6366f1";
-                          e.currentTarget.style.transform = "translateY(0)";
-                          e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
-                        }}
+                        className="tests-button tests-button--primary"
                       >
                         Вернуться к статье
                       </button>
@@ -800,6 +571,7 @@ export default function Tests() {
             );
           })()}
         </div>
+
         </div>
       </div>
     </main>

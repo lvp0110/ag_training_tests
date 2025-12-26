@@ -194,127 +194,48 @@ export default function Article() {
   };
 
   return (
-    <main style={{ position: "relative", minHeight: "100vh", display: "flex", justifyContent: "center" }}>
-      <div style={{ margin: "0 auto", width: "100%", paddingLeft: "4rem", paddingRight: "4rem" }}>
-        <h1 style={{ fontSize: "2rem", fontWeight: 600, marginBottom: "2rem", color: "white" }}>
+    <main className="article-main-container">
+      <div className="article-wrapper">
+        <h1 className="article-title">
           {articleTitle || "Загрузка..."}
         </h1>
 
         <div
           className={isNarrowScreen && !imagesOpen ? "article-layout article-layout--no-gap" : "article-layout"}
-          style={{
-            display: "flex",
-            gap: "2rem",
-            alignItems: "flex-start",
-          }}
         >
           {/* Секция с текстом */}
           {(!isMobileScreen || !imagesOpen) && (
             <div
               ref={textContainerRef}
-              style={{
-                flex: 1,
-                borderRadius: "16px",
-                padding: "2rem",
-                borderWidth: 1,
-                borderStyle: "solid",
-                borderColor: "#e5e7eb",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                maxHeight: "70vh",
-                overflowY: "auto",
-                lineHeight: "1.8",
-                fontSize: "1rem",
-                color: "white",
-                scrollBehavior: "smooth",
-              }}
+              className="article-text-container"
             >
               {loading && (
-                <div style={{ textAlign: "center", padding: "2rem" }}>
+                <div className="article-loading">
                   Загрузка статьи...
                 </div>
               )}
               {error && (
-                <div style={{ color: "#ef4444", textAlign: "center", padding: "2rem" }}>
+                <div className="article-error">
                   Ошибка загрузки статьи: {error}
                 </div>
               )}
               {!loading && !error && (
                 <>
-                  <div
-                    style={{
-                      marginBottom: "1.5rem",
-                      display: "flex",
-                      justifyContent: "flex-start",
-                    }}
-                  >
+                  <div className="article-back-button-container">
                     <button
                       onClick={() => navigate("/articles")}
-                      style={{
-                        padding: "0.75rem 1.5rem",
-                        fontSize: "0.95rem",
-                        fontWeight: 600,
-                        color: "white",
-                        background: "#6b7280",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#4b5563";
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "#6b7280";
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
-                      }}
+                      className="article-back-button"
                     >
                       ← Вернуться к списку статей
                     </button>
                   </div>
-                  <div
-                    style={{
-                      whiteSpace: "pre-wrap",
-                      wordWrap: "break-word",
-                      textAlign: "justify",
-                    }}
-                  >
+                  <div className="article-content">
                     {articleText}
                   </div>
-                  <div
-                    style={{
-                      marginTop: "2rem",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <div className="article-tests-button-container">
                     <button
                       onClick={handleGoToTests}
-                      style={{
-                        padding: "0.75rem 2rem",
-                        fontSize: "1rem",
-                        fontWeight: 600,
-                        color: "white",
-                        background: "#6366f1",
-                        border: "none",
-                        borderRadius: "8px",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#4f46e5";
-                        e.currentTarget.style.transform = "translateY(-2px)";
-                        e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "#6366f1";
-                        e.currentTarget.style.transform = "translateY(0)";
-                        e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
-                      }}
+                      className="article-tests-button"
                     >
                       Перейти к тестам
                     </button>
@@ -329,42 +250,16 @@ export default function Article() {
             id="article-images-panel"
             className={`article-images${isNarrowScreen && imagesOpen ? " is-open" : ""}`}
           >
-            {/* <h2
-              style={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                marginBottom: "1rem",
-                color: "#111827",
-              }}
-            >
-              Изображения
-            </h2> */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "1rem",
-              }}
-            >
+            <div className="article-images-container">
               {images.map((image, index) => (
                 <div
                   key={index}
-                  style={{
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    borderWidth: 1,
-                    borderStyle: "solid",
-                    borderColor: "#e5e7eb",
-                  }}
+                  className="article-image-wrapper"
                 >
                   <img
                     src={image}
                     alt={`Изображение ${index + 1}`}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      display: "block",
-                    }}
+                    className="article-image"
                   />
                 </div>
               ))}

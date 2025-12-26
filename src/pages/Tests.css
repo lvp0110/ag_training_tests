@@ -1,0 +1,249 @@
+.tests-main-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.tests-content-container {
+  max-width: 600px;
+  box-sizing: border-box;
+}
+
+.tests-center-container {
+  max-width: 600px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.tests-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.tests-loading,
+.tests-error {
+  font-size: 1rem;
+}
+
+.tests-loading {
+  color: #6b7280;
+}
+
+.tests-error {
+  color: #ef4444;
+}
+
+.tests-questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tests-no-questions {
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  width: 100%;
+}
+
+.tests-no-questions-text {
+  margin: 0;
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.tests-question-section {
+  background: #ffffff40;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+}
+
+.tests-question-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: rgb(226 229 235);
+}
+
+.tests-question-title-container {
+  margin-bottom: 1rem;
+}
+
+.tests-answers-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tests-answer-item {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: default;
+  background: #f9fafb;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5e7eb;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.tests-answer-item--selectable {
+  cursor: pointer;
+}
+
+.tests-answer-item--selectable:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.tests-answer-item--selected {
+  background: #f3f4f6;
+  border-width: 2px;
+  border-color: #6366f1;
+  color: #374151;
+}
+
+.tests-answer-item--checking {
+  background: #fffbeb;
+  border-width: 2px;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.tests-answer-item--correct {
+  background: #f0fdf4;
+  border-width: 2px;
+  border-color: #10b981;
+  color: #065f46;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.tests-answer-item--incorrect {
+  background: #fef2f2;
+  border-width: 2px;
+  border-color: #ef4444;
+  color: #991b1b;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.tests-answer-item--muted {
+  background: #f9fafb;
+  border-width: 1px;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  opacity: 0.6;
+}
+
+.tests-answer-text {
+  font-weight: 400;
+}
+
+.tests-answer-text--selected {
+  font-weight: 600;
+}
+
+.tests-checking-indicator {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.tests-no-answers {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.tests-error-message {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ef4444;
+}
+
+.tests-error-message-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #dc2626;
+}
+
+.tests-summary {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+  color: #6b7280;
+  width: 100%;
+}
+
+.tests-summary-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.tests-button {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tests-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.tests-button--success {
+  background: #10b981;
+}
+
+.tests-button--success:hover {
+  background: #059669;
+}
+
+.tests-button--success:active {
+  transform: translateY(0);
+}
+
+.tests-button--primary {
+  background: #6366f1;
+}
+
+.tests-button--primary:hover {
+  background: #4f46e5;
+}
+
+.tests-button--primary:active {
+  transform: translateY(0);
+}
+

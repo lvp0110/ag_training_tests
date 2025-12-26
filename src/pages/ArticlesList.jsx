@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINTS } from "../config/api";
+import "./ArticlesList.css";
 
 export default function ArticlesList() {
   const navigate = useNavigate();
@@ -59,90 +60,35 @@ export default function ArticlesList() {
   };
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 800,
-        margin: "0 auto",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "2rem",
-          fontWeight: 600,
-          marginBottom: "2rem",
-          color: "white",
-        }}
-      >
+    <div className="articles-list-container">
+      <h1 className="articles-list-title">
         Список статей
       </h1>
 
       {loading && (
-        <div style={{ color: "white", textAlign: "center", padding: "2rem" }}>
+        <div className="articles-list-loading">
           Загрузка статей...
         </div>
       )}
 
       {error && (
-        <div style={{ color: "#ef4444", textAlign: "center", padding: "2rem" }}>
+        <div className="articles-list-error">
           Ошибка загрузки статей: {error}
         </div>
       )}
 
       {!loading && !error && (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "1rem",
-          }}
-        >
+        <div className="articles-list-items">
           {articles.map((article, index) => (
           <div
             key={article.Code || article.code || article.id || article._id || index}
             onClick={() => handleArticleClick(article.Code || article.code, article.active)}
-            style={{
-              borderRadius: "12px",
-              padding: "1.5rem",
-              borderWidth: 1,
-              borderStyle: "solid",
-              borderColor: article.active ? "#e5e7eb" : "#9ca3af",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-              cursor: article.active ? "pointer" : "not-allowed",
-              transition: "all 0.2s ease",
-              opacity: article.active ? 1 : 0.5,
-            }}
-            onMouseEnter={(e) => {
-              if (article.active) {
-                e.currentTarget.style.borderColor = "#3b82f6";
-                e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (article.active) {
-                e.currentTarget.style.borderColor = "#e5e7eb";
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }
-            }}
+            className={`article-card ${!article.active ? "article-card--inactive" : ""}`}
           >
-            <h2
-              style={{
-                fontSize: "1.25rem",
-                fontWeight: 600,
-                marginBottom: "0.5rem",
-              }}
-            >
+            <h2 className="article-card-title">
               {article.Name || article.name || article.title || article.Title || "Без названия"}
             </h2>
-            <p
-              style={{
-                fontSize: "0.875rem",
-                color: article.active ? "#6b7280" : "#9ca3af",
-                margin: 0,
-              }}
-            >
+            <p className="article-card-description">
               {article.description || article.desc || article.Description || ""}
               {!article.active && " (недоступно)"}
             </p>
