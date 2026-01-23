@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import StarfieldBackground from "./components/StarfieldBackground";
 
 
 export default function App() {
@@ -7,6 +8,7 @@ export default function App() {
   const currentPath = location.pathname;
   const [isNarrowScreen, setIsNarrowScreen] = useState(false);
   const [articleImagesOpen, setArticleImagesOpen] = useState(false);
+  const [isFlashActive, setIsFlashActive] = useState(false);
 
   const getLinkStyle = (path) => {
     const isActive = currentPath === path;
@@ -47,18 +49,27 @@ export default function App() {
 
   const toggleImages = () => {
     window.dispatchEvent(new Event("articleImagesToggle"));
+    // Анимация смены иконки на 0.3 секунды
+    setIsFlashActive(true);
+    setTimeout(() => {
+      setIsFlashActive(false);
+    }, 300);
   };
 
   return (     
-    <div
-      style={{
-        margin: "0px auto",
-        fontFamily: "sans-serif",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <>
+      <StarfieldBackground />
+      <div
+        style={{
+          margin: "0px auto",
+          fontFamily: "sans-serif",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
       <header
         style={{
           width: "100%",
@@ -98,7 +109,7 @@ export default function App() {
             aria-label={articleImagesOpen ? "Скрыть изображения" : "Показать изображения"}
             title={articleImagesOpen ? "Скрыть изображения" : "Показать изображения"}
           >
-            {articleImagesOpen ? "📸" : "📷"}
+            {isFlashActive ? "📸" : "📷"}
           </button>
         )}
       </header>
@@ -135,6 +146,6 @@ export default function App() {
         </small>
       </footer>
     </div>
-    
+    </>
   );
 }

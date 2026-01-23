@@ -21,6 +21,8 @@ export default function Tests() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   // Храним результаты проверки: ключ - question_code, значение - { isCorrect: boolean, checking: boolean, error: string, correctAnswerCode: string }
   const [checkResults, setCheckResults] = useState({});
+  // Индекс текущего отображаемого вопроса
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -264,6 +266,17 @@ export default function Tests() {
         const updated = { ...prev, [questionCode]: resultData };
         console.log("Обновленные результаты проверки:", updated);
         console.log("Результат для вопроса", questionCode, ":", resultData);
+        
+        // Автоматически переходим к следующему вопросу после проверки
+        setTimeout(() => {
+          setCurrentQuestionIndex((currentIndex) => {
+            if (currentIndex < questions.length - 1) {
+              return currentIndex + 1;
+            }
+            return currentIndex;
+          });
+        }, 1000); // Задержка 1 секунда, чтобы пользователь увидел результат
+        
         return updated;
       });
     } catch (err) {
@@ -382,15 +395,19 @@ export default function Tests() {
             </p>
           </div>
         ) : (
-          <div className="tests-questions-container">
-            {questions.map((question, index) => {
+          <>
+            {/* Отображаем только текущий вопрос */}
+            {(() => {
+              const question = questions[currentQuestionIndex];
+              if (!question) return null;
+
               // Извлекаем код вопроса (структура: Code - это question_code для /check POST)
               const questionCode =
                 question.Code ||
                 question.code ||
                 question.question_code ||
                 question.id ||
-                String(index + 1);
+                String(currentQuestionIndex + 1);
 
               // Извлекаем текст вопроса (структура: Name)
               const questionText =
@@ -401,7 +418,7 @@ export default function Tests() {
                 question.title ||
                 question.question_text ||
                 question.label ||
-                `Вопрос ${index + 1}`;
+                `Вопрос ${currentQuestionIndex + 1}`;
 
               // Извлекаем варианты ответов (структура: Answers - массив с Name и Code)
               let options = [];
@@ -457,13 +474,16 @@ export default function Tests() {
 
               return (
                 <section
-                  key={questionCode || question.id || question._id || index}
+                  key={questionCode || question.id || question._id || currentQuestionIndex}
                   className="tests-question-section"
                 >
                   <div className="tests-question-title-container">
                     <h2 className="tests-question-title">
                       {questionText}
                     </h2>
+                    <div className="tests-question-counter">
+                      Вопрос {currentQuestionIndex + 1} из {questions.length}
+                    </div>
                   </div>
 
                   {Array.isArray(options) && options.length > 0 ? (
@@ -521,8 +541,8 @@ export default function Tests() {
                   )}
                 </section>
               );
-            })}
-          </div>
+            })()}
+          </>
         )}
 
         <div className="tests-summary">

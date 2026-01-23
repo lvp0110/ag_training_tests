@@ -16,7 +16,8 @@ html, body { height: 100%; }
 body {
   margin: 0;
   height: 100vh;
-  background-color: #242424;
+  background: radial-gradient(circle at center, #020111, #000);
+  overflow-x: hidden;
 }
 
 a {
